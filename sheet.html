@@ -286,8 +286,9 @@ function ackListHtml(it) {
     <div class="bar"><i style="width:${pct}%"></i></div>
     ${it.meAssigned && !it.meAckAt ? `<div class="mebox"><p>คุณยังไม่ได้รับทราบ${it.type === "news" ? "เรื่องนี้" : "นัดนี้"}</p>
       <button class="btn p${it.type === "news" ? " red" : ""}" id="ackbtn" style="margin-top:0">รับทราบ</button></div>` : ""}
-    ${it.pending.length ? `<div class="sec wc">⏳ ยังไม่รับทราบ ${it.pending.length} คน</div>
-      <div class="pl">${it.pending.map(p => `<div><span>${esc(p.name)}${p.me ? ' <small style="color:var(--tx3)">(คุณ)</small>' : ""}</span></div>`).join("")}</div>` : ""}
+    ${it.pending.length || it.unknown ? `<div class="sec wc">⏳ ยังไม่รับทราบ ${it.pending.length + (it.unknown || 0)} คน</div>
+      <div class="pl">${it.pending.map(p => `<div><span>${esc(p.name)}${p.me ? ' <small style="color:var(--tx3)">(คุณ)</small>' : ""}</span></div>`).join("")}
+      ${it.unknown ? `<div><span style="color:var(--tx2)">และอีก ${it.unknown} คนในกลุ่มที่บอตยังไม่รู้จักชื่อ</span></div>` : ""}</div>` : ""}
     ${it.done.length ? `<div class="sec okc">✅ รับทราบแล้ว ${it.done.length} คน</div>
       <div class="pl">${it.done.map(d => `<div><span>${esc(d.name)}${d.me ? ' <small style="color:var(--tx3)">(คุณ)</small>' : ""}</span><span class="okc" style="font-size:13px">${esc(d.at)} น.</span></div>`).join("")}</div>` : ""}
     ${it.statusLine ? `<div class="note">${esc(it.statusLine)}</div>` : ""}`;
@@ -406,9 +407,9 @@ function formHtml(d, fromBot) {
 
       <div class="lb">มอบหมายให้รับทราบ</div>
       <div class="chips" id="chips"></div>
-      <div style="font-size:12px;color:var(--tx3)">ไม่เห็นชื่อใคร ให้คนนั้นพิมพ์อะไรก็ได้ในกลุ่ม 1 ครั้ง หรือเปิดหน้านี้ 1 ครั้ง</div>
+      <div style="font-size:12px;color:var(--tx3)">เลือก "ทุกคน" แล้วคนที่ยังไม่มีชื่อก็กดรับทราบได้ ชื่อจะเพิ่มให้เอง · ถ้าจะเลือกรายคนแต่ไม่เห็นชื่อ ให้คนนั้นพิมพ์อะไรก็ได้ในกลุ่ม 1 ครั้ง</div>
 
-      <div class="sw"><div>ติดตามการรับทราบ<small>มีปุ่ม "รับทราบ" ในกลุ่ม · เตือนคนที่ยังไม่กด 1 ครั้งหลัง 1 ชม.</small></div><div class="tg ${d.track ? "on" : ""}" id="track"></div></div>
+      <div class="sw"><div>ติดตามการรับทราบ<small>มีปุ่ม "รับทราบ" และ "ติดตาม" ในกลุ่ม</small></div><div class="tg ${d.track ? "on" : ""}" id="track"></div></div>
 
       <div class="err" id="err"></div>
       <button class="btn p${red}" id="save">${isEdit ? "บันทึกการแก้ไข" : "บันทึกและแจ้งกลุ่ม"}</button>
@@ -544,7 +545,7 @@ function demoApi(action, data) {
     ownerName: "พี่จริยา", isOwner: true, track: true, assignAll: false, assignees: ["u1", "u2", "u3", "u5", "u6"], total: 5,
     done: [{ name: "พี่จริยา", at: "08.05", me: true }, { name: "น้องมาย", at: "08.12" }, { name: "พี่นก", at: "08.30" }],
     pending: [{ name: "พี่แอน" }, { name: "น้องบี" }], meAssigned: true, meAckAt: "08.05",
-    statusLine: "🕘 กรุณากดรับทราบ แจ้งเมื่อ 08.00 น. บอตจะเตือนคนที่ยังไม่รับทราบอัตโนมัติ 1 ครั้งเวลา 09.00 น.", past: false
+    statusLine: "🕘 กรุณากดรับทราบ แจ้งเมื่อ 08.00 น.", past: false
   };
   const ok = o => Promise.resolve({ ok: true, ...o });
   switch (action) {

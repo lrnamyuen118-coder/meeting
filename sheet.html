@@ -630,7 +630,7 @@ function dutyEditor(date, day) {
             <button class="ic" data-del="${i}" style="color:var(--rd);font-size:20px" aria-label="ลบแถว">×</button></div>
           <div class="g2"><select class="in" data-f="team"><option value="">ทีม</option>${opt(DUTY.teams, r.team)}</select>
             <select class="in" data-f="position"><option value="">ตำแหน่ง</option>${opt(DUTY.positions, r.position)}</select></div>
-          <textarea class="in" data-f="task" placeholder="หน้าที่รับผิดชอบ (เลือกทีม+ตำแหน่งแล้วเติมให้เอง)" style="margin-top:6px;min-height:80px">${esc(r.task)}</textarea>
+          <textarea class="in" data-f="task" placeholder="หน้าที่รับผิดชอบ (เลือกตำแหน่งแล้วเติมให้เอง)" style="margin-top:6px;min-height:80px">${esc(r.task)}</textarea>
           <input class="in" data-f="note" placeholder="หมายเหตุ (ไม่บังคับ)" value="${esc(r.note || "")}" style="margin-top:6px"></div>`).join("") +
         `<button class="btn s" data-add="${s}" style="margin-top:2px;padding:8px">+ เพิ่มคนเวร${s}</button>`).join("")}
       <div class="err" id="err"></div>
@@ -643,8 +643,8 @@ function dutyEditor(date, day) {
     on(".ed [data-f]", "change", e => {
       const box = e.currentTarget.closest(".ed"), r = rows[+box.dataset.i], f = e.currentTarget.dataset.f;
       r[f] = e.currentTarget.value;
-      if ((f === "team" || f === "position") && r.team && r.position) {
-        const sug = DUTY.suggest[r.team + "|" + r.position];
+      if ((f === "team" || f === "position") && r.position) {
+        const sug = DUTY.suggest[(r.team || "") + "|" + r.position] || DUTY.suggest["|" + r.position];
         if (sug && (!r.task || r.task === r._sug)) { r.task = sug; r._sug = sug; box.querySelector('[data-f="task"]').value = sug; }
       }
     });
@@ -724,9 +724,9 @@ function demoApi(action, data) {
     case "save": return ok({ id: "x", warn: "" });
     case "delete": return ok({});
     case "dutyInit": case "dutyLink": return ok({ me: { id: "N5", name: "นางจริยา หาระการณ์", isAdmin: true },
-      staff: [["N1", "นางสาวกมลทิพย์ ธรรมวงษ์ศา", "กมลทิพย์"], ["N4", "นางสาวจิระนันท์ ยางเดี่ยว", "จิระนันท์"], ["N3", "นางสาวสุพรรณี พะวัง", "สุพรรณี"], ["N5", "นางจริยา หาระการณ์", "จริยา ห."], ["N6", "นางสาวนฤมล พิเดช", "นฤมล"], ["H2", "นางสาววิภาพร ระทะมาตรย์", "วิภาพร"], ["H3", "นางสาวจริยา หงษ์ทอง", "จริยา ห."], ["H4", "นางสาวอรทัย พวงพันธ์", "อรทัย"]].map(([id, name, short]) => ({ id, name, short, position: id[0] === "N" ? "พยาบาลวิชาชีพ" : "ผู้ช่วยเหลือคนไข้" })),
+      staff: [["N1", "นางสาวกมลทิพย์ ธรรมวงษ์ศา", "กมลทิพย์"], ["N4", "นางสาวจิระนันท์ ยางเดี่ยว", "จิระนันท์"], ["N3", "นางสาวสุพรรณี พะวัง", "สุพรรณี"], ["N5", "นางจริยา หาระการณ์", "จริยา Nurse"], ["N6", "นางสาวนฤมล พิเดช", "นฤมล"], ["H2", "นางสาววิภาพร ระทะมาตรย์", "วิภาพร"], ["H3", "นางสาวจริยา หงษ์ทอง", "จริยา Aide"], ["H4", "นางสาวอรทัย พวงพันธ์", "อรทัย"]].map(([id, name, short]) => ({ id, name, short, position: id[0] === "N" ? "พยาบาลวิชาชีพ" : "ผู้ช่วยเหลือคนไข้" })),
       teams: ["LR", "PP", "ANC", "OR", "All zone"], positions: ["Head nurse", "Leader A", "Leader B", "NA", "ANC"], shifts: ["เช้า", "บ่าย", "ดึก"],
-      suggest: { "LR|Leader A": "1. Quick Round\n2. ร่วมรับ-ส่งเวร\n3. ดูแลมารดารอคลอด และทำคลอด\n4. บันทึกทางการพยาบาลของ LR" }, taken: ["N1"] });
+      suggest: { "LR|Leader A": "1. Quick Round\n2. ร่วมรับ-ส่งเวร\n3. ดูแลมารดารอคลอด และทำคลอด\n4. บันทึกทางการพยาบาลของ LR", "|NA": "กิจกรรม 5ส.ก่อน-หลังปฏิบัติงาน\nช่วยดูแลมารดาและทารก", "ANC|ANC": "ตรวจเช็คความพร้อมใช้เครื่องมือ ANC", "ANC|NA": "ตรวจเช็ค Stock กลูโคส" }, taken: ["N1"] });
     case "dutyDay": case "dutyAck": return ok({ n: 1, day: { date: data.date, dateText: thLong(data.date), holiday: "", working: true, done: action === "dutyAck" ? 4 : 3, total: 6,
       roster: [{ staffId: "N3", short: "สุพรรณี", shifts: ["บ่าย"] }],
       rows: [
@@ -734,7 +734,7 @@ function demoApi(action, data) {
         { shift: "เช้า", staffId: "N4", short: "จิระนันท์", team: "PP", position: "Leader A", task: "ตรวจเช็คความพร้อมใช้เครื่องมือ PP", ack: true, ackAt: "14/11/2026 07:20" },
         { shift: "เช้า", staffId: "H2", short: "วิภาพร", team: "All zone", position: "NA", task: "กิจกรรม 5ส.", ack: false },
         { shift: "บ่าย", staffId: "H4", short: "อรทัย", team: "All zone", position: "NA", task: "ช่วยดูแลมารดาและทารก", ack: true, ackAt: "14/11/2026 14:05" },
-        { shift: "ดึก", staffId: "N5", short: "จริยา ห.", team: "LR", position: "Leader A", task: "1. Quick Round\n2. ร่วมรับ-ส่งเวร\n3. ดูแลมารดารอคลอด และทำคลอด\n4. บันทึกทางการพยาบาลของ LR", ack: action === "dutyAck", ackAt: "14/11/2026 22:41", me: true },
+        { shift: "ดึก", staffId: "N5", short: "จริยา Nurse", team: "LR", position: "Leader A", task: "1. Quick Round\n2. ร่วมรับ-ส่งเวร\n3. ดูแลมารดารอคลอด และทำคลอด\n4. บันทึกทางการพยาบาลของ LR", ack: action === "dutyAck", ackAt: "14/11/2026 22:41", me: true },
         { shift: "ดึก", staffId: "N6", short: "นฤมล", team: "PP", position: "Leader B", task: "ดูแลมารดา-ทารกหลังคลอด", ack: false }] } });
     case "dutySave": return ok({});
   }
